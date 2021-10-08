@@ -25,3 +25,4 @@ constraints = Gen.choicemap((T.structure_addr()) => g)
 constraints[T.obs_addr()] = rand(3,100)
 
 trace, _ = generate(T.scene, (params,), constraints);
+@show T.get_poses(trace)

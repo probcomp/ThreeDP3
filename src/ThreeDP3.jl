@@ -9,7 +9,7 @@ import GenDirectionalStats
 import GenSceneGraphs as S
 import Rotations as R
 import PoseComposition: Pose
-import StaticArrays:SVector, @SVector, StaticVector
+import StaticArrays:SVector, @SVector, StaticVector, SMatrix
 import Colors
 import PyCall
 import LightGraphs as LG

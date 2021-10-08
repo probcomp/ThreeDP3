@@ -21,7 +21,7 @@ export propose_to_pose, gaussian_drift_proposal, pose_proposal_move, drift_move
     pose = trace[pose_addr]
     euler = zeros(3)
     euler[dimension] = pi
-    flipped_pose = get_c_relative_to_a(pose, Pose(RotXYZ(euler...)))
+    flipped_pose = get_c_relative_to_a(pose, Pose(R.RotXYZ(euler...)))
     {pose_addr} ~ gaussianVMF(flipped_pose, 0.0001, rot_conc)
 end
 pose_flip_move(trace, pose_addr, dimension, rot_conc) = mh(trace, pose_flip_proposal, (pose_addr, dimension, rot_conc))

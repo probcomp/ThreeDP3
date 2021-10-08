@@ -54,11 +54,11 @@ export scene, get_scene_graph, structure_addr, obs_addr, get_structure, get_gen_
 
 function get_unexplained_obs_cloud(trace, radius=1.0)
     obs = get_obs_cloud(trace)
-    obs_tree = KDTree(obs)
+    obs_tree = NearestNeighbors.KDTree(obs)
 
     valid = fill(true, size(obs)[2])
 
-    idxs = inrange(obs_tree, get_gen_cloud(trace), radius)
+    idxs = NearestNeighbors.inrange(obs_tree, get_gen_cloud(trace), radius)
     valid[unique(vcat(idxs...))] .= false
     valid
 end

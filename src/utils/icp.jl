@@ -8,10 +8,10 @@ function get_transform_between_two_registered_clouds(c1, c2)
     centered_1 = c1 .- centroid_1
     centered_2 = c2 .- centroid_2
     H = centered_1 * centered_2'
-    s = svd(H)
+    s = LinearAlgebra.svd(H)
     R = (s.V * permutedims(s.U))
-    if det(R) < 0
-        s = svd(R)
+    if LinearAlgebra.det(R) < 0
+        s = LinearAlgebra.svd(R)
         V = s.V
         V[:,3] .= -1.0 .* V[:,3]
         R = V * permutedims(s.U)
@@ -31,9 +31,9 @@ is, 3×something matrices where each column represents a point.
 """
 function icp(c1, c2; iterations=10)
     T = IDENTITY_POSE
-    tree = KDTree(c1)
+    tree = NearestNeighbors.KDTree(c1)
     for _ in 1:iterations
-        idxs, dists = nn(tree, c2)
+        idxs, dists = NearestNeighbors.nn(tree, c2)
         neighbors = c1[:,idxs]
         new_T = get_transform_between_two_registered_clouds(c2, neighbors)
         c2 = new_T.pos .+ (new_T.orientation * c2)
