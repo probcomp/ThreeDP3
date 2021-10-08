@@ -52,6 +52,7 @@ depth_image[depth_image .== 50000.0] .= 200.0
 img = I.colorview(I.Gray, depth_image ./ maximum(depth_image))
 I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
 
+# +
 renderer_texture = GL.setup_renderer(camera, GL.TextureMode())
 obj_paths = T.load_ycb_model_obj_file_paths(YCB_DIR)
 texture_paths = T.load_ycb_model_texture_file_paths(YCB_DIR)
@@ -72,3 +73,6 @@ rgb_image, depth_image = GL.gl_render(
 depth_image[depth_image .== 50000.0] .= 200.0
 img = I.colorview(I.Gray, depth_image ./ maximum(depth_image))
 I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+# -
+
+
