@@ -1,14 +1,16 @@
 # ThreeDP3
 
 ## Setup 
-```
-mkdir deps
-cd deps
-git clone git@github.com:probcomp/GenSceneGraphs.jl.git
-git clone git@github.com:probcomp/GenDirectionalStats.jl.git
-git clone git@github.com:probcomp/MeshCatViz.git
-git clone git@github.com:probcomp/GLRenderer.jl.git
-cd GLRenderer.jl/src/renderer
+```shell
+git clone git@github.com:probcomp/ThreeDP3.git
+cd ThreeDP3
+julia --project -e 'import Pkg;
+                    Pkg.pkg"dev --local git@github.com:probcomp/GenSceneGraphs.jl.git git@github.com:probcomp/GenDirectionalStats.jl.git git@github.com:probcomp/MeshCatViz.git git@github.com:probcomp/GLRenderer.jl.git";
+                    Pkg.instantiate()'
+
+python3 -m venv my_venv
+source my_venv/bin/activate
+cd dev/GLRenderer/src/renderer
 python setup.py develop
 cd ../../../..
 ```
