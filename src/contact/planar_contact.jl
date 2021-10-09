@@ -9,7 +9,7 @@ function get_closest_planar_contact(parent_pose, parent_bbox, child_pose, child_
             (child_pose * S.getContactPlane(child_bbox, S.BOX_SURFACE_IDS[face2])),
         ) for (face1, face2) in possible_face_pairs
     ]
-    error = [pose_distance(pc.slack, S.IDENTITY_POSE; r=5.0) for pc in corresponding_planar_contacts]
+    error = [pose_distance(pc.slack, PC.IDENTITY_POSE; r=5.0) for pc in corresponding_planar_contacts]
     best_contact_index = argmin(error)
     return possible_face_pairs[best_contact_index], corresponding_planar_contacts[best_contact_index]
 end

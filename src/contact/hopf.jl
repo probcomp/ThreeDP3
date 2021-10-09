@@ -4,7 +4,7 @@ import LinearAlgebra: norm, cross, dot
 function make_hopf_planar_contact(x::Real, y::Real, angle::Real,
     slack_offset::Real, slack_dir::GenDirectionalStats.UnitVector3
    ) :: S.PlanarContact
-    rot = S.OUTWARD_NORMAL_FLIP * S.geodesicHopf(S.OUTWARD_NORMAL_FLIP \ slack_dir.v, angle)
+    rot = S.OUTWARD_NORMAL_FLIP * PC.geodesicHopf(S.OUTWARD_NORMAL_FLIP \ slack_dir.v, angle)
     offset = inv(rot) * slack_dir.v * slack_offset
     relative_pose = Pose([x,y,0.0] .+ offset, rot)
     relative_pose_no_slack = Pose(x, y, 0.0, S.OUTWARD_NORMAL_FLIP * R.AngleAxis(angle, [0, 0, 1]...))

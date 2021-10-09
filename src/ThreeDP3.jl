@@ -8,6 +8,7 @@ import GLRenderer as GL
 import GenDirectionalStats
 import GenSceneGraphs as S
 import Rotations as R
+import PoseComposition as PC
 import PoseComposition: Pose
 import StaticArrays:SVector, @SVector, StaticVector, SMatrix
 import Colors
