@@ -14,13 +14,8 @@ cd dev/GLRenderer/src/renderer
 python setup.py develop
 cd ../../../..
 ```
-In Julia Package Manager:
-```
-dev ./deps/GenDirectionalStats.jl ./deps/GLRenderer.jl ./deps/MeshCatViz ./deps/GenSceneGraphs.jl
-instantiate
-```
 
 To test that the setup has worked run:
 ```
-julia test_generative_model.jl
+julia --project notebooks/test_generative_model.jl
 ```
