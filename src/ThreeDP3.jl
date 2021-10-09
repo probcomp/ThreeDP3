@@ -6,7 +6,7 @@ using Gen
 
 import GLRenderer as GL
 import GenDirectionalStats
-import GenSceneGraphs as S
+import MiniGSG as S
 import Rotations as R
 import PoseComposition as PC
 import PoseComposition: Pose

@@ -2,7 +2,7 @@ import Revise
 import GLRenderer as GL
 import ThreeDP3 as T
 import Images as I
-import GenSceneGraphs as S
+import MiniGSG as S
 import PoseComposition: Pose
 using Gen
 import MeshCatViz
