@@ -9,7 +9,7 @@ sudo apt install nvidia-cuda-toolkit
 git clone git@github.com:probcomp/ThreeDP3.git
 cd ThreeDP3
 julia --project -e 'import Pkg;
-                    Pkg.pkg"dev --local git@github.com:probcomp/GenSceneGraphs.jl.git git@github.com:probcomp/GenDirectionalStats.jl.git git@github.com:probcomp/MeshCatViz.git git@github.com:probcomp/GLRenderer.jl.git";
+                    Pkg.pkg"dev --local git@github.com:probcomp/MiniGSG.jl.git git@github.com:probcomp/GenDirectionalStats.jl.git git@github.com:probcomp/MeshCatViz.git git@github.com:probcomp/GLRenderer.jl.git";
                     Pkg.instantiate()'
 
 # Create a Python virtualenv to be used with the project

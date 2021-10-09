@@ -17,8 +17,8 @@ function euclidean_distance(pt1::SVector{3,<:Real}, pt2::SVector{3,<:Real})
     return sqrt(sum((x2 - x1)^2 for (x1, x2) in zip(pt1, pt2)))
 end
 function angle_distance(rot1::R.Rotation{3}, rot2::R.Rotation{3})
-    q1 = S.componentsWXYZ(Rotations.UnitQuaternion(rot1))
-    q2 = S.componentsWXYZ(Rotations.UnitQuaternion(rot2))
+    q1 = PC.componentsWXYZ(Rotations.UnitQuaternion(rot1))
+    q2 = PC.componentsWXYZ(Rotations.UnitQuaternion(rot2))
     return acos(min(1.0, 2 * sum(q1 .* q2)^2 - 1))
 end
 function pose_distance(p1::Pose, p2::Pose; r::Float64 = POSE_DISTANCE_FUNC_RADIUS)
