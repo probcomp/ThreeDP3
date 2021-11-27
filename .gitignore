@@ -1,2 +1,5 @@
 deps/*
 *Manifest.toml
+dev/*
+*.sublime*
+assets/*

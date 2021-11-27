@@ -40,6 +40,74 @@ I.colorview(I.RGB, permutedims(Float64.(gt_rgb_image)./255.0, (3,1,2)))
 # -
 
 
+import Plots as P
+import Measures
+
+maximum(gt_depth_image)
+
+P.heatmap(clamp.(gt_depth_image, 0.0,120.0), yflip=true, aspect_ratio=:equal,colorbar=false, xaxis=false, yaxis=false,xticks=false, yticks=false)
+# P.savefig("depth.png")
+
+
+size(gt_rgb_image)
+
+img = I.colorview(I.Gray, gt_depth_image ./ maximum(gt_depth_image))
+
+
+# +
+resolution = 0.5
+
+renderer_color = GL.setup_renderer(camera, GL.RGBMode())
+for id in all_ids
+    cloud = id_to_cloud[id]
+    v,n,f = GL.mesh_from_voxelized_cloud(GL.voxelize(cloud, resolution), resolution)
+    GL.load_object!(renderer_color, v, n, f)
+end
+# -
+
+colors = [
+    I.colorant"yellow", I.colorant"cyan", I.colorant"lightgreen",
+    I.colorant"red", I.colorant"purple", I.colorant"orange"
+]
+
+renderer_color.gl_instance.lightpos = [0.0, 0.0, -30.0]
+images = [
+    let
+    rot = R.RotY(ang) * R.RotX(pi/2)
+    gap = 15.0
+    poses = [Pose([gap*i - 3.5*gap, 60.0, 0.0], rot) for (i,_) in enumerate(ids)]
+    rgb_image, depth_image = GL.gl_render(
+        renderer_color, ids, poses, colors[1:length(ids)], Pose([0.0,0.0,-160.0],R.RotX(-pi/10)))
+    I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+    end
+    for ang in 0:0.1:(8*pi)
+]
+
+ang = 0.0
+gap = 14.0
+rot = R.RotY(ang) * R.RotX(pi/2)
+p = popat!(poses, 4)
+insert!(poses,2,p)
+p = popat!(ids, 4)
+insert!(ids,2,p)
+p = popat!(colors, 4)
+insert!(colors,2,p)
+poses = [Pose([gap*i - 3.0*gap, 60.0, 0.0], rot) for (i,_) in enumerate(ids)]
+
+# +
+
+poses[5] = Pose(poses[5].pos, R.RotZ(pi/2))
+poses[2] = Pose(poses[2].pos, R.RotZ(0.0))
+
+
+rgb_image, depth_image = GL.gl_render(
+    renderer_color, ids, poses, colors[1:length(ids)], Pose([0.0,0.0,-160.0],R.RotX(-pi/10)))
+I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+
+# -
+
+images[1]
+
 I.colorview(I.RGB, permutedims(Float64.(gt_rgb_image)./255.0, (3,1,2)))
 
 
@@ -54,10 +122,7 @@ for id in all_ids
     GL.load_object!(renderer, v, n, f)
 end
 
-colors = [
-    I.colorant"yellow", I.colorant"cyan", I.colorant"lightgreen",
-    I.colorant"red", I.colorant"purple", I.colorant"orange"
-]
+
 # -
 
 ids

@@ -63,4 +63,24 @@ function center_cloud(cloud)
     cloud .- mean(cloud, dims=2)
 end
 
+function opposite_face(face::Symbol)::Symbol
+    pairs = [[:top, :bottom],[:left, :right],[:front, :back]]
+    for p in pairs
+        if face ∈ p
+            idx = findfirst(p .== face)
+            return p[((idx%2) +1)]
+        end
+    end
+    return nothing
+end
+
+function get_unexplained_points(full_cloud, sub_cloud; radius=1.0)
+    obs_tree = NearestNeighbors.KDTree(full_cloud)
+
+    valid = fill(true, size(full_cloud)[2])
+    idxs = NearestNeighbors.inrange(obs_tree, sub_cloud, radius)
+    valid[unique(vcat(idxs...))] .= false
+    valid
+end
+
 export voxelize, min_max, discretize, center_cloud, pose_distance

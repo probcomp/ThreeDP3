@@ -16,16 +16,30 @@ world_scaling_factor = 100.0
 id_to_cloud, id_to_shift, id_to_box  = T.load_ycbv_models_adjusted(YCB_DIR, world_scaling_factor);
 all_ids = sort(collect(keys(id_to_cloud)));
 
-IDX =1800
+IDX =400
 @show T.get_ycb_scene_frame_id_from_idx(YCB_DIR,IDX)
-gt_poses, ids, rgb_image, gt_depth_image, cam_pose, camera = T.load_ycbv_scene_adjusted(
+gt_poses, ids, gt_rgb_image, gt_depth_image, cam_pose, camera = T.load_ycbv_scene_adjusted(
     YCB_DIR, IDX, world_scaling_factor, id_to_shift
 );
 img = I.colorview(I.Gray, gt_depth_image ./ maximum(gt_depth_image))
-I.colorview(I.RGB, permutedims(Float64.(rgb_image)./255.0, (3,1,2)))
+rgb_image = I.colorview(I.RGB, permutedims(Float64.(gt_rgb_image)./255.0, (3,1,2)))
 
 
-img = I.colorview(I.Gray, gt_depth_image ./ maximum(gt_depth_image))
+nominal_colors = [I.colorant"red",I.colorant"blue",I.colorant"green",I.colorant"yellow",I.colorant"white",
+I.colorant"black"];
+diffs = cat([I.colordiff.(rgb_image, c) for c in nominal_colors]...,dims=3);
+
+argmaxs = map(x->x[3],argmin(diffs, dims=3))[:,:,1];
+
+mod_image = copy(rgb_image)
+for (idx,c) in enumerate(nominal_colors)
+    mod_image[argmaxs .== idx] .= c
+end
+mod_image
+
+import Plots as P
+
+P.heatmap
 
 # +
 resolution = 0.5
