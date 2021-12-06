@@ -202,7 +202,7 @@ end
 
 @gen (static) function scene_graph_prior_model(model_params)
     scene_graph ~ scene_graph_prior(model_params)
-    return (scene_graph=scene_graph, temp=1.0)
+    return (scene_graph=scene_graph)
 end
 
 

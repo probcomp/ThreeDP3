@@ -97,7 +97,7 @@ function icp_project_to_planar_contact(
             (p * S.getContactPlane(child_box, new_child_face)),
         )
         x,y,ang = pc.x, pc.y, pc.angle
-        contact = S.ShapeContact(parent_face, Real[], child_face, Real[], S.PlanarContact(x,y,ang))
+        contact = S.ShapeContact(parent_face, Real[], child_face, Real[], S.PlanarContact(x,y,ang #= And no slack term. =#))
         p = parent_pose * S.getRelativePoseFromContact(parent_box, child_box, contact)
 
         c = get_cloud_func(p)
