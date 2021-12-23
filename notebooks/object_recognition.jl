@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import Revise
 import GLRenderer as GL
 import ThreeDP3 as T
@@ -19,12 +20,12 @@ world_scaling_factor = 100.0
 id_to_cloud, id_to_shift, id_to_box  = T.load_ycbv_models_adjusted(YCB_DIR, world_scaling_factor);
 all_ids = sort(collect(keys(id_to_cloud)));
 
-IDX =1000
+IDX =400
 @show T.get_ycb_scene_frame_id_from_idx(YCB_DIR,IDX)
 gt_poses, ids, rgb_image, gt_depth_image, cam_pose, original_camera = T.load_ycbv_scene_adjusted(
     YCB_DIR, IDX, world_scaling_factor, id_to_shift
 );
-camera = T.scale_down_camera(original_camera, 4)
+camera = T.scale_down_camera(original_camera, 6)
 @show camera
 img = I.colorview(I.Gray, gt_depth_image ./ maximum(gt_depth_image))
 I.colorview(I.RGB, permutedims(Float64.(rgb_image)./255.0, (3,1,2)))
@@ -71,13 +72,13 @@ blobs = T.get_entities_from_assignment(voxelized_obs_cloud,
     T.dbscan_cluster(voxelized_obs_cloud, radius=0.6))
 
 @show ids
-obs_blob = blobs[2]
+obs_blob = blobs[4]
 MeshCatViz.reset_visualizer()
 MeshCatViz.viz(obs_blob ./ 100.0)
 
 # +
 parent_box = S.Box(40.0,40.0,0.1)
-parent_pose = Pose(0.0, 0.0, -1.0)
+parent_pose = Pose(0.0, 0.0, 0.0)
 parent_face = :top
 
 c1_tree = NN.KDTree(obs_blob)
@@ -109,6 +110,11 @@ for id in all_ids
     sort!(id_to_face_cloud_and_score[id],by=x->x.score,rev=true)
 end
 
+# -
+
+
+MeshCatViz.reset_visualizer()
+MeshCatViz.viz(obs_blob ./100.0; color=I.colorant"black", channel_name=:obs_cloud)
 
 
 # +
@@ -116,14 +122,23 @@ scores = [id_to_face_cloud_and_score[id][1].score for id in all_ids]
 perm = sortperm(-scores)
 best_score_id = perm[1]
 @show best_score_id
-c = id_to_face_cloud_and_score[best_score_id][2].cloud
+c = id_to_face_cloud_and_score[best_score_id][1].cloud
 
 MeshCatViz.reset_visualizer()
 MeshCatViz.viz(obs_blob ./100.0; color=I.colorant"black", channel_name=:obs_cloud)
 MeshCatViz.viz(c ./100.0; color=I.colorant"red", channel_name=:gen_cloud)
+# -
+
+for id in all_ids
+    c = id_to_face_cloud_and_score[id][1].cloud
+    MeshCatViz.reset_visualizer()
+    MeshCatViz.viz(obs_blob ./100.0; color=I.colorant"black", channel_name=:obs_cloud)
+    MeshCatViz.viz(c ./100.0; color=I.colorant"red", channel_name=:gen_cloud)
+    sleep(0.1)
+end
 
 # +
-c = id_to_face_cloud_and_score[12][1].cloud
+c = id_to_face_cloud_and_score[6][1].cloud
 
 MeshCatViz.reset_visualizer()
 MeshCatViz.viz(obs_blob ./100.0; color=I.colorant"black", channel_name=:obs_cloud)
@@ -206,175 +221,9 @@ MeshCatViz.viz(obs_blob ./100.0; color=I.colorant"black", channel_name=:obs_clou
 MeshCatViz.viz(c ./100.0; color=I.colorant"red", channel_name=:gen_cloud)
 # -
 
-c
-
-ids
-
-ids
-
-# +
-id_1 = 13
-    data = id_to_face_cloud_and_score[id_1][1]
-    
-    unexplained_idxs = T.get_unexplained_points(obs_blob, data.cloud)
-    unexplained_points = obs_blob[:, unexplained_idxs]
-    
-    c1_tree = NN.KDTree(unexplained_points)
-    
-    parent_pose = data.pose
-    parent_face = T.opposite_face(data.face)
-    parent_box = id_to_box[id_1]
-
-
-id = 3 
-child_face=:left
-(x,y,ang) = T.icp_project_to_planar_contact(
-    unexplained_points, p -> get_cloud_func(id,p), parent_pose, parent_box, parent_face,
-    child_box, child_face,
-    0.0,0.0,0.0;
-    c1_tree= c1_tree, outer_iterations=5, iterations=10
-)
-
-contact = S.ShapeContact(parent_face, Real[], child_face, Real[], S.PlanarContact(x,y,ang))
-p = parent_pose * S.getRelativePoseFromContact(parent_box, child_box, contact)
-c = get_cloud_func(id,p)
-
-
-MeshCatViz.reset_visualizer()
-MeshCatViz.viz(unexplained_points; color=I.colorant"black", channel_name=:obs_cloud)
-MeshCatViz.viz(c; color=I.colorant"red", channel_name=:gen_cloud)
 
 
 
-# +
-
-c = id_and_id_to_face_cloud_and_score[(13,3)][1].cloud
-
-MeshCatViz.reset_visualizer()
-MeshCatViz.viz(obs_blob; color=I.colorant"black", channel_name=:obs_cloud)
-MeshCatViz.viz(c; color=I.colorant"red", channel_name=:gen_cloud)
-# -
-
-unexplained_idxs = T.get_unexplained_points(obs_blob, data.cloud)
-unexplained_points = obs_blob[:, unexplained_idxs]
-MeshCatViz.viz(unexplained_points; color=I.colorant"red", channel_name=:gen_cloud)
-
-
-ids
-
-pair = (13,:right)
-@show id_and_face_to_score[pair]
-c = id_and_face_to_cloud[pair]
-c = id_and_face_to_cloud[best_pair]
-
-
-
-MeshCatViz.reset_visualizer()
-MeshCatViz.viz(obs_blob; color=I.colorant"black", channel_name=:obs_cloud)
-MeshCatViz.viz(c; color=I.colorant"red", channel_name=:gen_cloud)
-
-
-
-ids
-
-clouds = [[
-    let
-        p = T.icp_object_pose(IDENTITY_POSE, obs_blob,
-                              p-> T.move_points_to_frame_b(T.voxelize(get_cloud_from_ids_and_poses(
-                                [id], [p], cam_pose),0.5), cam_pose), true)
-
-        c = T.move_points_to_frame_b(T.voxelize(
-                get_cloud_from_ids_and_poses([id], [p], cam_pose), 0.5), cam_pose)
-    end 
-    for _ in 1:10
-] for id in all_ids];
-scores = [
-    maximum([
-        Gen.logpdf(T.uniform_mixture_from_template,obs_blob, c, 0.01, 0.5*2,(-1000.0, 1000.0, -1000.0,1000.0,-1000.0,1000.0))
-        for c in x
-    ])
-    for x in clouds
-]
-
-best_id = argmax(scores)
-@show best_id
-c = clouds[best_id][1]
-MeshCatViz.viz(c; color=I.colorant"red", channel_name=:h1)
-MeshCatViz.viz(obs_blob; color=I.colorant"black", channel_name=:h2)
-
-ids
-
-
-
-ids
-
-c
-
-
-
-
-MeshCatViz.reset_visualizer()
-MeshCatViz.viz(T.get_obs_cloud(trace); color=I.colorant"black", channel_name=:obs_cloud)
-MeshCatViz.viz(T.get_gen_cloud(trace); color=I.colorant"red", channel_name=:gen_cloud)
-
-traces = [trace];
-
-for i in 1:length(ids)
-    if !T.isFloating(T.get_structure(trace),i)
-        continue
-    end
-    pose_addr = T.floating_pose_addr(i)
-    for _ in 1:50
-        trace, acc = T.drift_move(trace, pose_addr, 0.5, 10.0)
-        if acc traces = push!(traces, trace) end
-
-        trace, acc = T.drift_move(trace, pose_addr, 1.0, 100.0)
-        if acc traces = push!(traces, trace) end
-        trace, acc = T.drift_move(trace, pose_addr, 1.5, 1000.0)
-        if acc traces = push!(traces, trace) end
-        trace, acc = T.drift_move(trace, pose_addr, 0.1, 1000.0)
-        if acc traces = push!(traces, trace) end
-        trace, acc = T.drift_move(trace, pose_addr, 0.1, 100.0)
-        if acc traces = push!(traces, trace) end
-        trace, acc = T.drift_move(trace, pose_addr, 0.5, 5000.0)
-        if acc traces = push!(traces, trace) end
-        trace, acc = T.pose_flip_move(trace, pose_addr, 1, 1000.0)
-        if acc traces = push!(traces, trace) end
-        trace, acc = T.pose_flip_move(trace, pose_addr, 2, 1000.0)
-        if acc traces = push!(traces, trace) end
-        trace, acc = T.pose_flip_move(trace, pose_addr, 3, 1000.0)
-        if acc traces = push!(traces, trace) end
-    end
-end
-
-
-CRAZY_POSE = Pose(-100.0 * ones(3), T.IDENTITY_ORIENTATION)
-for i in 1:length(ids)
-    if !T.isFloating(T.get_structure(trace),i)
-        continue
-    end
-    addr = T.floating_pose_addr(i)
-
-    t, = Gen.update(trace, Gen.choicemap(T.floating_pose_addr(i) => CRAZY_POSE))
-    valid = T.get_unexplained_obs_cloud(t)
-
-    p = T.icp_object_pose(trace[addr], trace[:obs][:,valid],
-                          p-> get_cloud_from_ids_and_poses(
-                            [ids[i]], [p], cam_pose), false)
-    for _ in 1:3
-        trace, acc = T.pose_mixture_move(trace, addr, [trace[addr], p], [0.5, 0.5], 0.001, 5000.0)
-        if acc traces = push!(traces, trace) end
-    end
-end
-
-MeshCatViz.reset_visualizer()
-MeshCatViz.viz(T.get_obs_cloud(trace); color=I.colorant"black", channel_name=:obs_cloud)
-MeshCatViz.viz(T.get_gen_cloud(trace); color=I.colorant"red", channel_name=:gen_cloud)
-
-depth_image = GL.gl_render(
-    renderer, ids, T.get_poses(trace)[1:end-1], cam_pose)
-depth_image[depth_image .== 50000.0] .= 200.0
-img = I.colorview(I.Gray, depth_image ./ maximum(depth_image))
 
 # +
 renderer_texture = GL.setup_renderer(original_camera, GL.TextureMode())
@@ -395,8 +244,157 @@ end
 
 # -
 
-rgb_image, depth_image = GL.gl_render(
-    renderer_texture, ids, T.get_poses(trace)[1:end-1], cam_pose)
-I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+@show ids
+
+img = I.colorview(I.RGB, permutedims(Float64.(rgb_image)./255.0, (3,1,2)))
+
+# +
+parent_box = S.Box(40.0,40.0,0.1)
+parent_pose = Pose(0.0, 0.0, 0.0)
+parent_face = :top
+id = 6
+child_box = id_to_box[id]
+
+
+x = 17.0
+y = -6.0
+ang = Gen.uniform(0.0, 2*π)
+child_face = :top
+
+contact = S.ShapeContact(parent_face, Real[], child_face, Real[], S.PlanarContact(x,y,ang))
+p = parent_pose * S.getRelativePoseFromContact(parent_box, child_box, contact)
+
+renderer_texture.gl_instance.lightpos = cam_pose.pos
+@time rgb_image, depth_image = GL.gl_render(
+    renderer_texture, [id], [p], cam_pose)
+overlay_img = I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+mask = (overlay_img .!= overlay_img[1,1])
+new_img = copy(img)
+alpha = 0.1
+new_img[mask] .= alpha*new_img[mask] .+ (1-alpha).*overlay_img[mask]
+new_img
+
+# +
+parent_box = S.Box(40.0,40.0,0.1)
+parent_pose = Pose(0.0, 0.0, 0.0)
+parent_face = :top
+id = 6
+child_box = id_to_box[id]
+
+
+
+param_sweep = [
+    (x,y,0.0)
+    for x in -20.0:2.5:13.0 for y in -10.0:2.5:10.0
+]
+child_face = :top
+@show size(param_sweep)
+imgs = [
+    let  
+        contact = S.ShapeContact(parent_face, Real[], child_face, Real[], S.PlanarContact(x,y,ang))
+        p = parent_pose * S.getRelativePoseFromContact(parent_box, child_box, contact)
+
+        renderer_texture.gl_instance.lightpos = cam_pose.pos
+        rgb_image, depth_image = GL.gl_render(
+            renderer_texture, [id], [p], cam_pose)
+        overlay_img = I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+        mask = (overlay_img .!= overlay_img[1,1])
+        new_img = copy(img)
+        alpha = 0.1
+        new_img[mask] .= alpha*new_img[mask] .+ (1-alpha).*overlay_img[mask]
+        new_img
+    end
+    for (x,y,ang) in param_sweep
+];
+# -
+
+import FileIO
+gif = cat(imgs...;dims=3);
+FileIO.save("test.gif", gif)
+
+# +
+new_img = copy(img)
+function highlight_bounding_box(img_in, is,js, w, h)
+    img = copy(img_in)
+    col = I.colorant"red"
+    border_width = 5
+    for i in is:is+border_width
+        for j in js:js+border_width
+        
+        img[i,j:j+w] .= col
+        img[i+h,j:j+w] .= col
+        img[i:i+h,j] .= col
+        img[i:i+h,j+w] .= col
+        end
+    end
+    img 
+end
+
+
+
+param_sweep = [
+    [
+    highlight_bounding_box(new_img, x,y,z,z)
+    for x in 1:50:(480-z-5) for y in 1:50:(640-z-5)
+    ]
+    for z in 100:50:200
+];
+param_sweep = vcat(param_sweep...)
+
+@show size(param_sweep)
+# -
+
+import FileIO
+gif = cat(param_sweep...;dims=3);
+FileIO.save("test2.gif", gif)
+
+Gen.categorical(ones(6)./6.0)
+
+imgs = [
+    let 
+        x = Gen.uniform(-20.0,13.0)
+        y = Gen.uniform(-10.0,10.0)
+        ang = Gen.uniform(0,2*pi)
+        child_face = S.BOX_SURFACE_IDS[Gen.categorical(ones(6)./6.0)]
+            
+        contact = S.ShapeContact(parent_face, Real[], child_face, Real[], S.PlanarContact(x,y,ang))
+        p = parent_pose * S.getRelativePoseFromContact(parent_box, child_box, contact)
+
+        renderer_texture.gl_instance.lightpos = cam_pose.pos
+        rgb_image, depth_image = GL.gl_render(
+            renderer_texture, [id], [p], cam_pose)
+        overlay_img = I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+        mask = (overlay_img .!= overlay_img[1,1])
+        new_img = copy(img)
+        alpha = 0.1
+        new_img[mask] .= alpha*new_img[mask] .+ (1-alpha).*overlay_img[mask]
+        new_img
+    end
+    for _ in 1:50
+];
+
+import FileIO
+gif = cat(imgs...;dims=3);
+FileIO.save("test2.gif", gif)
+
+imgs = [
+    let 
+        p = T.uniformPose(-30.0, 33.0, -20.0,20.0, -10.0, 20.0)
+        renderer_texture.gl_instance.lightpos = cam_pose.pos
+        rgb_image, depth_image = GL.gl_render(
+            renderer_texture, [id], [p], cam_pose)
+        overlay_img = I.colorview(I.RGBA, permutedims(rgb_image,(3,1,2)))
+        mask = (overlay_img .!= overlay_img[1,1])
+        new_img = copy(img)
+        alpha = 0.1
+        new_img[mask] .= alpha*new_img[mask] .+ (1-alpha).*overlay_img[mask]
+        new_img        
+    end
+    for _ in 1:50
+];
+
+import FileIO
+gif = cat(imgs...;dims=3);
+FileIO.save("test2.gif", gif)
 
 

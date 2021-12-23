@@ -73,7 +73,7 @@ function reflection_matrix_4x4(center, direction)
 end
 
 # +
-IDX = 5
+IDX = 3
 obj_pose = T.get_c_relative_to_a(cam_pose,gt_poses[IDX])
 depth_image = GL.gl_render(renderer, [ids[IDX]], [obj_pose], cam_pose)
 
@@ -81,8 +81,8 @@ object_cloud = GL.flatten_point_cloud(GL.depth_image_to_point_cloud(depth_image,
 object_cloud = object_cloud[:,object_cloud[3,:] .< (camera.far - 1.0)]
 object_cloud = T.move_points_to_frame_b(object_cloud, cam_pose)
 mins,maxs = T.min_max(object_cloud)
-mins = mins .- 5.5
-maxs = maxs .+ 5.5
+mins = mins .- 6.5
+maxs = maxs .+ 6.5
 
 RESOLUTION = resolution
 mins,maxs = floor.(Int,mins ./ RESOLUTION) * RESOLUTION , ceil.(Int, maxs ./RESOLUTION) * RESOLUTION
@@ -95,13 +95,20 @@ ALL_VOXELS = hcat([[a,b,c] for a in collect(mins[1]:RESOLUTION:maxs[1])
 
 occupied, occluded, free = T.get_occ_ocl_free(T.get_points_in_frame_b(ALL_VOXELS,cam_pose), camera, depth_image, resolution)
 MeshCatViz.reset_visualizer()
-MeshCatViz.viz(ALL_VOXELS[:,occupied]./100.0;channel_name=:occupied,color=I.colorant"red")
-MeshCatViz.viz(ALL_VOXELS[:,occluded]./100.0;channel_name=:occluded,color=I.colorant"black")
+MeshCatViz.viz(ALL_VOXELS[:,occupied]./200.0;channel_name=:occupied,color=I.colorant"red")
+MeshCatViz.viz(ALL_VOXELS[:,occluded]./200.0;channel_name=:occluded,color=I.colorant"black")
 cloud = ALL_VOXELS[:,occupied]
 
 tree_occupied = NN.KDTree(ALL_VOXELS[:, occupied]);
 tree_non_free = NN.KDTree(ALL_VOXELS[:, occupied .| occluded]);
 # -
+
+
+plane_points = hcat([
+    [x,y,0.0]
+    for x in -10.0:1.0:10.0 for y in -10.0:1.0:10.0
+]...)
+@show size(plane_points)
 
 
 function score_reflection_plane(center, direction; verbose=false)
@@ -128,31 +135,64 @@ function score_reflection_plane(center, direction; verbose=false)
 end
 
 MeshCatViz.reset_visualizer()
-MeshCatViz.viz(cloud ./ 100.0)
+MeshCatViz.viz(cloud./500.0;channel_name=:occupied,color=I.colorant"red")
 T.min_max(cloud)
 
 
+# +
 param_sweep = [
-    ([x,y,0.0],[sin(θ),cos(θ),0.0])
+    ([x,y,10.0],[sin(θ),cos(θ),0.0])
     for x in -6.0:resolution:-2.0 for y in -1.0:resolution:5.0 for θ in 0:0.05:(2*pi)
 ];
 @show size(param_sweep)
 
+# for (c,d) in param_sweep[1:500]
+#     MeshCatViz.viz(get_plane_points(c,d) ./ 500.0;channel_name=:plane, color=I.colorant"green")
+#     sleep(0.005)
+# end
+# -
+
+
+
 scores = [score_reflection_plane(c, d)[1] for (c,d) in param_sweep];
+
+
 c,d = param_sweep[argmax(scores)]
 score, new_c = score_reflection_plane(c,d;verbose=true)
 @show score
 MeshCatViz.reset_visualizer()
-MeshCatViz.viz(cloud./100.0;channel_name=:occupied,color=I.colorant"red")
-MeshCatViz.viz(new_c./100.0;channel_name=:occluded,color=I.colorant"black")
+MeshCatViz.viz(cloud./200.0;channel_name=:occupied,color=I.colorant"red")
+MeshCatViz.viz(new_c./200.0;channel_name=:occluded,color=I.colorant"black")
+
+# +
+
+function get_plane_points(center, direction)
+    u = [0,0,1]
+    v = direction
+    u = u ./ LinearAlgebra.norm(u)
+    v = v ./ LinearAlgebra.norm(v)
+    half = (u+v) ./ LinearAlgebra.norm(u+v)
+    q = R.QuatRotation(LinearAlgebra.dot(u,half),LinearAlgebra.cross(u,half)...)
+    q * plane_points .+ center
+end
+
+MeshCatViz.viz(get_plane_points(c,d) ./ 200.0;channel_name=:plane, color=I.colorant"green")
+# -
 
 perm = sortperm(-1.0 .* scores)
 c,d = param_sweep[perm[5]]
 score, new_c = score_reflection_plane(c,d;verbose=true)
 @show score
 MeshCatViz.reset_visualizer()
-MeshCatViz.viz(cloud./100.0;channel_name=:occupied,color=I.colorant"red")
+MeshCatViz.viz(cloud./300.0;channel_name=:occupied,color=I.colorant"red")
 MeshCatViz.viz(new_c./100.0;channel_name=:occluded,color=I.colorant"black")
+
+# +
+plane_cloud = [
+    
+    
+]
+# -
 
 score_reflection_plane(best_grid_center, d)
 

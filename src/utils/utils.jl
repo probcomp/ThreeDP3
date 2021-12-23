@@ -83,4 +83,12 @@ function get_unexplained_points(full_cloud, sub_cloud; radius=1.0)
     valid
 end
 
+function rotation_between_two_vectors(u,v)
+    u = u ./ LinearAlgebra.norm(u)
+    v = v ./ LinearAlgebra.norm(v)
+    half = (u+v) ./ LinearAlgebra.norm(u+v)
+    q = R.QuatRotation(LinearAlgebra.dot(u,half),LinearAlgebra.cross(u,half)...)
+end
+
+
 export voxelize, min_max, discretize, center_cloud, pose_distance
